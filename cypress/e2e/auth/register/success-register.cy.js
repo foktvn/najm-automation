@@ -1,8 +1,7 @@
 import { MailSlurp } from "mailslurp-client";
 
 describe("Register with OTP Verification", () => {
-  const apiKey =
-    "4407e95063b50054d89c76b7343aaaca7edcce467ebf59a60ca7cedb53bc1aa1";
+  const apiKey = process.env.MAILSLURP_API_KEY;
   const mailslurp = new MailSlurp({ apiKey });
 
   it("should register and verify with OTP from email", async () => {
@@ -11,7 +10,6 @@ describe("Register with OTP Verification", () => {
 
     cy.visit("https://cat.najmcourse.com/auth/register");
 
-    // Isi form register pakai email dari MailSlurp
     cy.get('input[placeholder="Masukan Nama Lengkap"]', { timeout: 10000 })
       .should("be.visible")
       .type("Fenny Oktaviani");
@@ -26,16 +24,14 @@ describe("Register with OTP Verification", () => {
     cy.get("button").contains("Daftar").click();
 
     // Tunggu email masuk
-    const emailObj = await mailslurp.waitForLatestEmail(inbox.id, 60000); // max 60 detik
-    const otpMatch = emailObj.body.match(/\d{6}/); // cari 6 digit kode OTP
+    const emailObj = await mailslurp.waitForLatestEmail(inbox.id, 60000);
+    const otpMatch = emailObj.body.match(/\d{6}/);
     const otpCode = otpMatch[0];
 
-    // Input OTP ke halaman verifikasi
     cy.get('input[name="otp"]').type(otpCode);
     cy.get("button").contains("Verify").click();
 
-    // Assertion
-    cy.url().should("include", "/dashboard"); // ganti sesuai flow lo
-    cy.contains("Welcome").should("be.visible");
+    cy.url().should("include", "/auth/login");
+    cy.contains("Masuk").should("be.visible");
   });
 });
